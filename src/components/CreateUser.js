@@ -4,24 +4,42 @@ import axios from 'axios';
 
 
 export default class CreateUser extends Component {
-    
+
     state = {
         users: [],
         username: ''
     }
 
 
-async componentDidMount() {
-    const res = await axios.get('http://localhost:4000/api/users');
-    console.log(res);
-    this.setState({users: res.data});
-    console.log(this.state.users);
-}
-onChangeUsername = (e)  => {
-this.setState({
-    username: e.target.value
-})
-}
+    async componentDidMount() {
+        this.getUser();
+        console.log(this.state.users);
+    }
+    getUser = async () => {
+        const res = await axios.get('http://localhost:4000/api/users');
+        this.setState({ users: res.data });
+    }
+
+    onChangeUsername = (e) => {
+        this.setState({
+            username: e.target.value
+        })
+    }
+
+    onSubmit = async (e) => {
+        e.preventDefault();
+        await axios.post('http://localhost:4000/api/users', {
+            username: this.state.username
+        })
+        this.setState({username: ''})
+        this.getUser();
+    }
+
+
+    deleteUser = async (id) => {
+        await axios.delete('http://localhost:4000/api/users/' + id)
+        this.getUser();
+    }
     render() {
         return (
             <div className="row">
@@ -29,14 +47,18 @@ this.setState({
                     <div className="card">
                         <div className="card-body">
                             <h3>Create a new User!</h3>
-                            <form >
+                            <form onSubmit={this.onSubmit}>
                                 <div className="form-group">
-                                    <input 
-                                    type="text" 
-                                    className="form-control" 
-                                    onChange={this.onChangeUsername}
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        onChange={this.onChangeUsername}
+                                        value={this.state.username}
                                     />
                                 </div>
+                                <button type="submit" className="btn btn-primary">
+                                    Save
+                                </button>
                             </form>
                         </div>
                     </div>
@@ -45,7 +67,11 @@ this.setState({
                     <ul className="list-group">
                         {
                             this.state.users.map(user => (
-                                <li className="list-group-item list-group-item-action" key={user._id}>
+                                <li 
+                                    className="list-group-item list-group-item-action" 
+                                    key={user._id}
+                                    onDoubleClick={() => this.deleteUser(user._id)}
+                                >
                                     {user.username}
                                 </li>)
                             )
